@@ -3,6 +3,7 @@
 ## 1. Integrantes
 * Marco Antonio Galicia Flores
 * Felipe Jose Gonzalez Navarrete
+* Daniel Croche Soto
 
 ## 2. Descripción y Caso de Uso Real
 * **Secondary Sort:** Ordena los valores asociados a una llave durante la fase de *Shuffle & Sort*. **Caso de uso:** Análisis de datos climáticos donde necesitamos agrupar por año y, dentro de cada año, ordenar las temperaturas de menor a mayor.
