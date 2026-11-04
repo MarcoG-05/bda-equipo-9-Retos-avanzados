@@ -31,27 +31,67 @@
 * Los datos de entrada requieren el uso estricto de tabuladores (`\t`) como separador.
 
 ## 4. Guía Paso a Paso
-Genera los archivos de datos en tu computadora con tabuladores:
-💻 `printf "2023\t35\n2023\t31\n2023\t38\n2022\t28\n2022\t34\n" > datos/clima.txt`
-💻 `printf "1\tMarco\n2\tFelipe\n3\tJosue\n" > datos/clientes.txt`
-💻 `printf "1\tLaptop\n1\tMouse\n3\tTeclado\n" > datos/pedidos.txt`
 
-Copia los datos al contenedor:
-💻 `docker cp datos/clima.txt hadoop:/tmp/clima.txt`
-💻 `docker cp datos/clientes.txt hadoop:/tmp/clientes.txt`
-💻 `docker cp datos/pedidos.txt hadoop:/tmp/pedidos.txt`
+Para reproducir esta práctica, ejecuta los siguientes comandos en orden. Las instrucciones utilizan los emojis acordados: 💻 indica un comando ejecutado en la terminal de tu computadora anfitriona y 🐳 indica un comando ejecutado dentro del contenedor de Hadoop.
 
-Limpia salidas previas (opcional pero recomendado):
-🐳 `docker exec -u root hadoop rm -rf /tmp/salida_sort /tmp/salida_join`
+**4.1 Generar los archivos de datos en tu computadora**
+Es indispensable utilizar `printf` en lugar de crear los archivos a mano para garantizar que las columnas estén separadas por tabuladores reales (`\t`), un requisito estricto del algoritmo `join`.
 
-Ejecuta los algoritmos dentro de Hadoop:
-🐳 `docker exec -u hadoop -e JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 hadoop /opt/hadoop/bin/hadoop jar /opt/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.6.jar secondarysort /tmp/clima.txt /tmp/salida_sort`
+```bash
+# 💻 En tu computadora
+printf "2023\t35\n2023\t31\n2023\t38\n2022\t28\n2022\t34\n" > datos/clima.txt
+printf "1\tMarco\n2\tFelipe\n3\tJosue\n" > datos/clientes.txt
+printf "1\tLaptop\n1\tMouse\n3\tTeclado\n" > datos/pedidos.txt
 
-🐳 `docker exec -u hadoop -e JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 hadoop /opt/hadoop/bin/hadoop jar /opt/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.6.jar join -inFormat org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat -outFormat org.apache.hadoop.mapreduce.lib.output.TextOutputFormat -outKey org.apache.hadoop.io.Text /tmp/clientes.txt /tmp/pedidos.txt /tmp/salida_join`
+```
 
-Extrae los resultados a tu computadora:
-💻 `docker cp hadoop:/tmp/salida_sort/part-r-00000 resultados/resultado_sort.txt`
-💻 `docker cp hadoop:/tmp/salida_join/part-m-00000 resultados/resultado_join.txt`
+**4.2 Copiar los datos al contenedor**
+
+```bash
+# 💻 En tu computadora
+docker cp datos/clima.txt hadoop:/tmp/clima.txt
+docker cp datos/clientes.txt hadoop:/tmp/clientes.txt
+docker cp datos/pedidos.txt hadoop:/tmp/pedidos.txt
+
+```
+
+**4.3 Limpiar salidas previas (Recomendado)**
+Hadoop arroja error si las carpetas de salida ya existen. Ejecuta esto para asegurar una ejecución limpia.
+
+```bash
+# 🐳 Dentro del contenedor
+docker exec -u root hadoop rm -rf /tmp/salida_sort /tmp/salida_join
+
+```
+
+**4.4 Ejecutar los algoritmos dentro de Hadoop**
+Ejecutaremos el *Secondary Sort* y el *Join*. Los comandos incluyen saltos de línea (`\`) para facilitar su lectura y declaran la ruta de Java explícitamente para evitar errores de conexión.
+
+```bash
+# 🐳 Dentro del contenedor (Ejecutar Secondary Sort)
+docker exec -u hadoop -e JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 hadoop \
+  /opt/hadoop/bin/hadoop jar /opt/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.6.jar \
+  secondarysort /tmp/clima.txt /tmp/salida_sort
+
+# 🐳 Dentro del contenedor (Ejecutar Join)
+docker exec -u hadoop -e JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 hadoop \
+  /opt/hadoop/bin/hadoop jar /opt/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.6.jar \
+  join -inFormat org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat \
+  -outFormat org.apache.hadoop.mapreduce.lib.output.TextOutputFormat \
+  -outKey org.apache.hadoop.io.Text \
+  /tmp/clientes.txt /tmp/pedidos.txt /tmp/salida_join
+
+```
+
+**4.5 Extraer los resultados a tu computadora**
+Nota que el archivo del *Secondary Sort* termina en `part-r` (pasó por un Reduce), mientras que el del *Join* termina en `part-m` (fue un Map-side join).
+
+```bash
+# 💻 En tu computadora
+docker cp hadoop:/tmp/salida_sort/part-r-00000 resultados/resultado_sort.txt
+docker cp hadoop:/tmp/salida_join/part-m-00000 resultados/resultado_join.txt
+
+```
 
 ## 5. Resultado Esperado
 Al ejecutar un `cat` de los resultados, deberías ver las temperaturas ordenadas por año y las compras cruzadas y asociadas a cada cliente.
