@@ -12,6 +12,22 @@
 
 ## 3. Requisitos
 * Contenedor de Docker con **Hadoop 3.3.6** funcionando.
+  -Creacion del contenedor:
+    docker run -it --name hadoop -p 9870:9870 \
+    -p 9000:9000 --hostname hadoop debian:12 bash
+  -Denro del contenedor poner:
+    apt update -y
+    apt upgrade -y
+    apt install -y openssh-server wget sudo vim nano net-tools curl
+  -Instalar hadoop
+   -Nos movemos de carpeta
+    cd /opt
+   -Descargamos hadoop comprimido
+    wget https://dlcdn.apache.org/hadoop/common/hadoop-3.3.6/hadoop-3.3.6.tar.gz
+   -Descomprimos el hadoop
+    tar -zxvf hadoop-3.3.6.tar.gz
+   -Creamos el enlace simbolico
+    ln -s hadoop-3.3.6 hadoop
 * Los datos de entrada requieren el uso estricto de tabuladores (`\t`) como separador.
 
 ## 4. Guía Paso a Paso
